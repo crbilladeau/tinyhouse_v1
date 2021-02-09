@@ -35,7 +35,11 @@ const mount = async (app: Application) => {
   // connect to mongodb database
   const db = await connectDatabase();
   // Apollo Server
-  const server = new ApolloServer({ typeDefs, resolvers, context: () => ({ db }) });
+  const server = new ApolloServer({ 
+    typeDefs, 
+    resolvers, 
+    context: () => ({ db }) 
+  });
   server.applyMiddleware({ app, path: '/api' });
 
   app.listen(process.env.PORT);
