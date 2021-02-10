@@ -1,5 +1,6 @@
 import { gql } from 'apollo-server-express';
 
+// graphql schema
 export const typeDefs = gql`
   type Listing {
     id: ID!
@@ -12,7 +13,6 @@ export const typeDefs = gql`
     numOfBaths: Int!
     rating: Int!
   }
-
   type Query {
     listings: [Listing!]!
   }
@@ -21,3 +21,5 @@ export const typeDefs = gql`
     deleteListing(id: ID!): Listing!
   }
 `;
+
+// mutation deletes by listing id
