@@ -4,7 +4,8 @@ interface Body {
 
 export const server = {
   // property called fetch which defines an async function
-  fetch: async (body: Body) => {
+  // TData = type data, with parameter any if nothing is specified
+  fetch: async <TData = any>(body: Body) => {
     // window fetch function holds the response
     // gets proxied to localhost:9000/api, the graphQL endpoint
     const res = await fetch('/api', {
@@ -15,7 +16,8 @@ export const server = {
       body: JSON.stringify(body),
     });
 
-    return res.json();
+    // type assertion which overrides the types that TypeScript infers by using 'as' - use sparingly
+    return res.json() as Promise<{ data: TData }>;
   }
 };
 
