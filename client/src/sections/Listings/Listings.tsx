@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { server } from '../../lib/api';
-import { DeleteListingData, DeleteListingVariables, ListingsData } from './types';
+import { Listing, DeleteListingData, DeleteListingVariables, ListingsData } from './types';
 
 // listings query
 const LISTINGS = `
@@ -33,37 +33,53 @@ interface Props {
 }
 
 export const Listings = ({ title }: Props) => {
+  const [listings, setListings] = useState<Listing[] | null>(null);
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+
   const fetchListings = async () => {
     // fetch expects a body argument which contains a query field of the query intended to be fetched; the query defines the shape of the data to be returned from the api
     const { data } = await server.fetch<ListingsData>({ query: LISTINGS });
-    console.log(data);
+    setListings(data.listings);
   }
 
-  const deleteListing = async () => {
+  const deleteListing = async (id: string) => {
     // data type helps define the shpae of data being returned and the data variables type helps constrict the shape of variables the request expects
-    const { data } = await server.fetch<
+    await server.fetch<
       DeleteListingData,
       DeleteListingVariables
     >({
       query: DELETE_LISTING,
       variables: {
-        id: "6021fc7971fc47267406901f", // hardcoded id variable
+        id
       }
     });
-    console.log(data);
+    fetchListings();
   };
+
+  const listingsList = listings ? (
+    <ul>
+      {listings.map((listing) => {
+        return (
+          <li key={listing.id}>{listing.title}
+            <button onClick={() => deleteListing(listing.id)}>
+              Delete
+            </button>
+          </li>
+        );
+      })}
+    </ul> 
+  ) : null;
 
   return (
     <div>
       <h2>
         {title}
       </h2>
-      <button onClick={fetchListings}>
-        Query Listings
-      </button>
-      <button onClick={deleteListing}>
-        Delete a Listing
-      </button>
+      {listingsList}
     </div>
   )
 }
