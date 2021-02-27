@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { server } from '../../lib/api';
-import { Listing, DeleteListingData, DeleteListingVariables, ListingsData } from './types';
+import React from 'react';
+import { gql } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
+import { Listings as ListingsData } from './__generated__/Listings';
+import { DeleteListing as DeleteListingData, DeleteListingVariables } from './__generated__/DeleteListing';
 
 // listings query
-const LISTINGS = `
+// NOTE: we must name queries and mutations in order for apollo codegen to work
+const LISTINGS = gql`
   query Listings {
     listings {
       id
@@ -20,7 +23,7 @@ const LISTINGS = `
 `;
 
 // delete listing mutation
-const DELETE_LISTING = `
+const DELETE_LISTING = gql`
   mutation DeleteListing($id: ID!) {
     deleteListing(id: $id) {
       id
@@ -33,39 +36,29 @@ interface Props {
 }
 
 export const Listings = ({ title }: Props) => {
-  const [listings, setListings] = useState<Listing[] | null>(null);
+  const { data, loading, error, refetch  } = useQuery<ListingsData>(LISTINGS);
 
-  useEffect(() => {
-    fetchListings();
-  }, []);
+  const [deleteListing, 
+    { 
+      loading: deleteListingLoading, 
+      error: deleteListingError 
+    }
+  ] = useMutation<DeleteListingData, DeleteListingVariables>(DELETE_LISTING);
 
-
-  const fetchListings = async () => {
-    // fetch expects a body argument which contains a query field of the query intended to be fetched; the query defines the shape of the data to be returned from the api
-    const { data } = await server.fetch<ListingsData>({ query: LISTINGS });
-    setListings(data.listings);
-  }
-
-  const deleteListing = async (id: string) => {
+  const handleDeleteListing = async (id: string) => {
     // data type helps define the shpae of data being returned and the data variables type helps constrict the shape of variables the request expects
-    await server.fetch<
-      DeleteListingData,
-      DeleteListingVariables
-    >({
-      query: DELETE_LISTING,
-      variables: {
-        id
-      }
-    });
-    fetchListings();
+    await deleteListing({ variables: { id } });
+    refetch();
   };
+
+  const listings = data ? data.listings : null;
 
   const listingsList = listings ? (
     <ul>
       {listings.map((listing) => {
         return (
           <li key={listing.id}>{listing.title}
-            <button onClick={() => deleteListing(listing.id)}>
+            <button onClick={() => handleDeleteListing(listing.id)}>
               Delete
             </button>
           </li>
@@ -73,6 +66,18 @@ export const Listings = ({ title }: Props) => {
       })}
     </ul> 
   ) : null;
+  
+  if (loading) {
+    return <h2>Loading...</h2>
+  }
+
+  if (error) {
+    return <h2>Uh oh! Something went wrong - please try again later</h2>
+  }
+
+  const deleteListingLoadingMessage = deleteListingLoading? <h4>Deletion in progress...</h4> : null;
+
+  const deleteListingErrorMessage = deleteListingError? <h4>Uh oh! Something went wrong with delting - please try again later</h4> : null;
 
   return (
     <div>
@@ -80,6 +85,8 @@ export const Listings = ({ title }: Props) => {
         {title}
       </h2>
       {listingsList}
+      {deleteListingLoadingMessage}
+      {deleteListingErrorMessage}
     </div>
   )
 }
