@@ -1,5 +1,13 @@
 import { Collection, ObjectId } from 'mongodb';
 
+export interface Viewer {
+  _id?: string;
+  token?: string;
+  avatar?: string;
+  walletId?: string;
+  didRequest: boolean;
+}
+
 // enums are used to define a  known set of named constants
 export enum ListingType {
   Apartment = 'APARTMENT',

@@ -1,25 +1,27 @@
 import { gql } from 'apollo-server-express';
 
-// graphql schema
+// graphql schema for OAuth for "Viewer"
+// didRequest tells whether we've already attempted to obtain the Viewer's info
 export const typeDefs = gql`
-  type Listing {
-    id: ID!
-    title: String!
-    image: String!
-    address: String!
-    price: Int!
-    numOfGuests: Int!
-    numOfBeds: Int!
-    numOfBaths: Int!
-    rating: Int!
+  type Viewer {
+    id: ID
+    token: String
+    avatar: String
+    hasWallet: Boolean
+    didRequest: Boolean!
   }
+
+  input LogInInput {
+    code: String!
+  }
+
   type Query {
-    listings: [Listing!]!
+    authUrl: String!
   }
 
   type Mutation {
-    deleteListing(id: ID!): Listing!
+    logIn(input: LogInInput): Viewer!
+    logOut: Viewer!
   }
 `;
-
-// mutation deletes by listing id
+// logIn & logOut will return a Viewer instance when successful
